@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import com.example.shopcardmanager.R
+import com.example.shopcardmanager.model.usecase.ImageScanner
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import org.opencv.android.OpenCVLoader
@@ -37,8 +38,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         nav_view.setNavigationItemSelectedListener(this)
 
         if(OpenCVLoader.initDebug()){
-            Log.i("tag","Ok");
+            Log.i("tag","Ok")
         }
+
+        val imagescanner = ImageScanner()
+        imagescanner.onImageScan(resources)
     }
 
     override fun onBackPressed() {
