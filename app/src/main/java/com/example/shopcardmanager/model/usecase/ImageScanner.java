@@ -11,20 +11,99 @@ import java.util.*;
 
 
 public class ImageScanner {
-    public void onImageScan(Resources res) {
-        /* ①：画像読み込み */
-        Bitmap bmp = BitmapFactory.decodeResource(res, R.drawable.test);
+
+    private List<Double> d = new ArrayList<Double>();
+
+    public Bitmap onImageScan(Bitmap bmp) {
         Mat mat = new Mat();
         Utils.bitmapToMat(bmp, mat, true);
 
-        /* ②：画像を二値化 */
-        mat = getThreshold(mat);
+        /* ①：画像を二値化 */
+        Mat mat2;
+        mat2 = getThreshold(mat);
 
-        /* ③：輪郭の座標を取得 */
-        List<MatOfPoint> contours = getContour(mat);
-        List<List<Point>> points = contour2point(contours);
+        /* ②：輪郭の座標を取得 */
+        List<MatOfPoint> contours = getContour(mat2);
+
+        /* ③：最も面積が大きい四角形を返却 */
+        int maxidx = 0;
+        double maxarea = 0;
+        for(int i=0; i<contours.size(); i++){
+            if(Imgproc.contourArea(contours.get(i)) > maxarea) {
+                maxarea = Imgproc.contourArea(contours.get(i));
+                maxidx = i;
+            }
+        }
+
+        List<Point> dstPoints = contours.get(maxidx).toList();
+        double minX = -1, minY = -1, maxX = 0, maxY = 0;
+        Point p1,p2,p3,p4;
+
+        // debug start
+        for(int i=0; i<contours.size(); i++) {
+            List<Point> points = contours.get(i).toList();
+            for(Point p : points) {
+                d.add(p.x);
+                d.add(p.y);
+            }
+        }
+        // debug end
+
+        for(Point p : dstPoints) {
+            if(p.x > maxX) {
+                maxX = p.x;
+            }
+            if(p.y > maxY) {
+                maxY = p.y;
+            }
+            if(minX == -1) {
+                minX = p.x;
+            }
+            else if(p.x < minX) {
+                minX = p.x;
+            }
+            if(minY == -1) {
+                minY = p.y;
+            }
+            else if(p.y < minY) {
+                minY = p.y;
+            }
+        }
+
+        MatOfPoint2f srcPoint2fMat = new MatOfPoint2f();
+        MatOfPoint2f dstPoint2fMat = new MatOfPoint2f();
+
+        contours.get(maxidx).convertTo(srcPoint2fMat, CvType.CV_32F);
+        new MatOfPoint(
+                new Point(minX, minY),
+                new Point(maxX, minY),
+                new Point(maxX, minY),
+                new Point(maxX, maxY)).convertTo(dstPoint2fMat, CvType.CV_32F);
+
+        Mat srcPointMat = contours.get(maxidx);
+        Mat dstPointMat = new MatOfPoint(
+                new Point(minX, minY),
+                new Point(maxX, minY),
+                new Point(maxX, minY),
+                new Point(maxX, maxY));
+
+        Mat M = Imgproc.getPerspectiveTransform(srcPoint2fMat, dstPoint2fMat);
+        Mat dst =  new Mat(mat.rows(), mat.cols(), mat.type());
+        Imgproc.warpPerspective(mat, dst, M, new Size(maxX, maxY));
+
+        //Bitmap ret = Bitmap.createBitmap(dst.width(), dst.height(), Bitmap.Config.ARGB_8888);
+        //Utils.matToBitmap(dst, ret);
+        Bitmap ret = Bitmap.createBitmap(bmp.getWidth(), bmp.getHeight(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(mat, ret);
+
+        return bmp;
     }
 
+    public List<Double> getPoints() {
+        return d;
+    }
+
+    /* 画像の二値化 */
     private Mat getThreshold(Mat mat) {
         /* ②-1-1：RGB空間チャネルの取得 */
         Mat mat_rgb = mat.clone();
@@ -83,6 +162,7 @@ public class ImageScanner {
         return mat_mask;
     }
 
+    /* 輪郭の取得 */
     private List<MatOfPoint> getContour(Mat mat) {
         List<MatOfPoint> contour = new ArrayList<>();
 
@@ -115,13 +195,5 @@ public class ImageScanner {
         }
 
         return contour;
-    }
-
-    private List<List<Point>> contour2point(List<MatOfPoint> contour) {
-        List<List<Point>> points = new ArrayList<>();
-        for(int i = 0; i < contour.size(); i++) {
-            points.add(contour.get(i).toList());
-        }
-        return points;
     }
 }
