@@ -1,0 +1,31 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context="com.doctormiyabi.shopcardmanager.ui.Base.Camera2BasicFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/hello_blank_fragment"/>
+
+    <com.doctormiyabi.shopcardmanager.ui.View.AutoFitTextureView
+            android:id="@+id/texture"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    <View
+            android:id="@+id/picture"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:text="picture"/>
+
+    <View
+            android:id="@+id/info"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="top"
+            android:text="Info"/>
+</FrameLayout>

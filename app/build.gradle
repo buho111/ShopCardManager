@@ -7,7 +7,7 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.example.shopcardmanager"
+        applicationId "com.doctormiyabi.shopcardmanager"
         minSdkVersion 21
         targetSdkVersion 28
         versionCode 1
@@ -20,7 +20,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    dataBinding{
+    dataBinding {
         enabled = true
     }
 }

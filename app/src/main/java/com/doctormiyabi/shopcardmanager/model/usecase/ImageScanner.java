@@ -1,8 +1,6 @@
-package com.example.shopcardmanager.model.usecase;
+package com.doctormiyabi.shopcardmanager.model.usecase;
 
-import android.content.res.Resources;
 import android.graphics.*;
-import com.example.shopcardmanager.R;
 import org.opencv.android.Utils;
 import org.opencv.core.*;
 import org.opencv.core.Point;
@@ -35,11 +33,8 @@ public class ImageScanner {
             }
         }
 
-        List<Point> dstPoints = contours.get(maxidx).toList();
-        double minX = -1, minY = -1, maxX = 0, maxY = 0;
-        Point p1,p2,p3,p4;
-
         // debug start
+        d.clear();
         for(int i=0; i<contours.size(); i++) {
             List<Point> points = contours.get(i).toList();
             for(Point p : points) {
@@ -49,48 +44,55 @@ public class ImageScanner {
         }
         // debug end
 
-        for(Point p : dstPoints) {
-            if(p.x > maxX) {
-                maxX = p.x;
+        if(contours.size() != 0) {
+            List<Point> dstPoints = contours.get(maxidx).toList();
+
+            double minX = -1, minY = -1, maxX = 0, maxY = 0;
+            Point p1,p2,p3,p4;
+
+            for(Point p : dstPoints) {
+                if(p.x > maxX) {
+                    maxX = p.x;
+                }
+                if(p.y > maxY) {
+                    maxY = p.y;
+                }
+                if(minX == -1) {
+                    minX = p.x;
+                }
+                else if(p.x < minX) {
+                    minX = p.x;
+                }
+                if(minY == -1) {
+                    minY = p.y;
+                }
+                else if(p.y < minY) {
+                    minY = p.y;
+                }
             }
-            if(p.y > maxY) {
-                maxY = p.y;
-            }
-            if(minX == -1) {
-                minX = p.x;
-            }
-            else if(p.x < minX) {
-                minX = p.x;
-            }
-            if(minY == -1) {
-                minY = p.y;
-            }
-            else if(p.y < minY) {
-                minY = p.y;
-            }
+
+            MatOfPoint2f srcPoint2fMat = new MatOfPoint2f();
+            MatOfPoint2f dstPoint2fMat = new MatOfPoint2f();
+
+            contours.get(maxidx).convertTo(srcPoint2fMat, CvType.CV_32F);
+            new MatOfPoint(
+                    new Point(minX, minY),
+                    new Point(maxX, minY),
+                    new Point(maxX, minY),
+                    new Point(maxX, maxY)).convertTo(dstPoint2fMat, CvType.CV_32F);
+
+            Mat srcPointMat = contours.get(maxidx);
+            Mat dstPointMat = new MatOfPoint(
+                    new Point(minX, minY),
+                    new Point(maxX, minY),
+                    new Point(maxX, minY),
+                    new Point(maxX, maxY));
+
+            Mat M = Imgproc.getPerspectiveTransform(srcPoint2fMat, dstPoint2fMat);
+            Mat dst =  new Mat(mat.rows(), mat.cols(), mat.type());
+            Imgproc.warpPerspective(mat, dst, M, new Size(maxX, maxY));
+
         }
-
-        MatOfPoint2f srcPoint2fMat = new MatOfPoint2f();
-        MatOfPoint2f dstPoint2fMat = new MatOfPoint2f();
-
-        contours.get(maxidx).convertTo(srcPoint2fMat, CvType.CV_32F);
-        new MatOfPoint(
-                new Point(minX, minY),
-                new Point(maxX, minY),
-                new Point(maxX, minY),
-                new Point(maxX, maxY)).convertTo(dstPoint2fMat, CvType.CV_32F);
-
-        Mat srcPointMat = contours.get(maxidx);
-        Mat dstPointMat = new MatOfPoint(
-                new Point(minX, minY),
-                new Point(maxX, minY),
-                new Point(maxX, minY),
-                new Point(maxX, maxY));
-
-        Mat M = Imgproc.getPerspectiveTransform(srcPoint2fMat, dstPoint2fMat);
-        Mat dst =  new Mat(mat.rows(), mat.cols(), mat.type());
-        Imgproc.warpPerspective(mat, dst, M, new Size(maxX, maxY));
-
         //Bitmap ret = Bitmap.createBitmap(dst.width(), dst.height(), Bitmap.Config.ARGB_8888);
         //Utils.matToBitmap(dst, ret);
         Bitmap ret = Bitmap.createBitmap(bmp.getWidth(), bmp.getHeight(), Bitmap.Config.ARGB_8888);

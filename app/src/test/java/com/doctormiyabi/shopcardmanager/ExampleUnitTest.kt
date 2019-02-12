@@ -1,4 +1,4 @@
-package com.example.shopcardmanager
+package com.doctormiyabi.shopcardmanager
 
 import org.junit.Test
 
